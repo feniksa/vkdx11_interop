@@ -65,24 +65,8 @@ std::unique_ptr<Buffer> DenoiserGpuFilter::createStagingBufferFor(Image* image)
 
 void DenoiserGpuFilter::initialize()
 {
-    m_stagingColorBuffer = std::move(createStagingBufferFor(m_input));
-
-    m_copyOutputCommand.get().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
-    copyBufferToImage(m_copyOutputCommand, m_stagingColorBuffer.get(), m_output);
-    m_copyOutputCommand.get().end();
-
-    m_copyInputsCommands.get().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
-    copyImageToBuffer(m_copyInputsCommands, m_input, m_stagingColorBuffer.get());
-    if (m_albedo && m_normal) {
-        m_stagingAlbedoBuffer = std::move(createStagingBufferFor(m_albedo));
-        copyImageToBuffer(m_copyInputsCommands, m_albedo, m_stagingAlbedoBuffer.get());
-
-        m_stagingNormalBuffer = std::move(createStagingBufferFor(m_normal));
-        copyImageToBuffer(m_copyInputsCommands, m_normal, m_stagingNormalBuffer.get());
-    }
-    m_copyInputsCommands.get().end();
-
     m_filter = m_device.newFilter("RT"); // generic ray tracing filter
+    m_stagingColorBuffer = std::move(createStagingBufferFor(m_input));
 
     const uint32_t width = m_input->description().width;
     const uint32_t height = m_input->description().height;
@@ -104,6 +88,21 @@ void DenoiserGpuFilter::initialize()
     }
     m_filter.set("hdr", true); // beauty image is HDR
     m_filter.commit();
+
+    m_copyOutputCommand.get().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
+    copyBufferToImage(m_copyOutputCommand, m_stagingColorBuffer.get(), m_output);
+    m_copyOutputCommand.get().end();
+
+    m_copyInputsCommands.get().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
+    copyImageToBuffer(m_copyInputsCommands, m_input, m_stagingColorBuffer.get());
+    if (m_albedo && m_normal) {
+        m_stagingAlbedoBuffer = std::move(createStagingBufferFor(m_albedo));
+        copyImageToBuffer(m_copyInputsCommands, m_albedo, m_stagingAlbedoBuffer.get());
+
+        m_stagingNormalBuffer = std::move(createStagingBufferFor(m_normal));
+        copyImageToBuffer(m_copyInputsCommands, m_normal, m_stagingNormalBuffer.get());
+    }
+    m_copyInputsCommands.get().end();
 }
 
 }

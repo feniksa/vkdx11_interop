@@ -207,8 +207,8 @@ void WithAovsInteropApp::resize(int width, int height)
 
             m_denoiserFilter->setOutput(*m_rgba32Output);
             m_denoiserFilter->setInput(*m_rgba32Output);
-            /*m_denoiserFilter->setAovAlbedo(*m_aovDiffuseAlbedo);
-            m_denoiserFilter->setAovNormal(*m_aovCameraNormal);*/
+            m_denoiserFilter->setAovAlbedo(*m_aovDiffuseAlbedo);
+            m_denoiserFilter->setAovNormal(*m_aovCameraNormal);
 
             m_bloomFilter->setOutput(*m_rgba32Output);
             m_bloomFilter->setInput(*m_rgba32Output);
